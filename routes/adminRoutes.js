@@ -1,3 +1,6 @@
+const bcrypt = require("bcryptjs");
+const Admin = require("../models/Admin");
+
 const express = require("express");
 const router = express.Router();
 
@@ -46,5 +49,6 @@ router.get(
   roleMiddleware("admin"),
   getAllOrders
 );
+
 
 module.exports = router;
