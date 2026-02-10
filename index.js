@@ -25,15 +25,6 @@ const adminRoutes = require("./routes/adminRoutes");
 const restaurantDashboardRoutes = require("./routes/restaurantDashboardRoutes");
 const restaurantAuthRoutes = require("./routes/restaurantAuthRoutes");
 
-console.log("userRoutes:", typeof userRoutes);
-console.log("cartRoutes:", typeof cartRoutes);
-console.log("restaurantRoutes:", typeof restaurantRoutes);
-console.log("productRoutes:", typeof productRoutes);
-console.log("orderRoutes:", typeof orderRoutes);
-console.log("adminRoutes:", typeof adminRoutes);
-console.log("restaurantDashboardRoutes:", typeof restaurantDashboardRoutes);
-console.log("restaurantAuthRoutes:", typeof restaurantAuthRoutes);
-
 app.use("/api/restaurant", restaurantAuthRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
@@ -42,6 +33,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/restaurant-dashboard", restaurantDashboardRoutes);
+app.use("/uploads", express.static("uploads"));
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -60,6 +52,7 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 
 });
+
 
 
 
