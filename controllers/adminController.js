@@ -5,6 +5,7 @@ const Admin = require("../models/Admin");
 const User = require("../models/User");
 const Restaurant = require("../models/Restaurant");
 const Orders = require("../models/Orders");
+const Product = require("../models/Product");
 
 /* =======================
    ADMIN LOGIN
@@ -34,7 +35,6 @@ exports.adminLogin = async (req, res) => {
 
     res.json({ token, role: "admin" });
   } catch (err) {
-    console.error("ADMIN LOGIN ERROR:", err);
     res.status(500).json({ message: "Admin login failed" });
   }
 };
@@ -60,26 +60,50 @@ exports.getAllOrders = async (req, res) => {
 };
 
 /* =======================
-   APPROVE RESTAURANT ✅
+   APPROVE RESTAURANT
 ======================= */
 exports.approveRestaurant = async (req, res) => {
+  const { id } = req.params;
+
+  const restaurant = await Restaurant.findById(id);
+  if (!restaurant) {
+    return res.status(404).json({ message: "Restaurant not found" });
+  }
+
+  restaurant.isApproved = true;
+  await restaurant.save();
+
+  res.json({ message: "Restaurant approved" });
+};
+
+/* =======================
+   DELETE RESTAURANT ❗
+   Requires email confirmation
+======================= */
+exports.deleteRestaurant = async (req, res) => {
   try {
     const { id } = req.params;
+    const { email } = req.body;
 
     const restaurant = await Restaurant.findById(id);
     if (!restaurant) {
       return res.status(404).json({ message: "Restaurant not found" });
     }
 
-    restaurant.isApproved = true;
-    await restaurant.save();
+    if (restaurant.email !== email) {
+      return res.status(400).json({
+        message: "Email confirmation does not match restaurant email",
+      });
+    }
 
-    res.json({
-      message: "Restaurant approved successfully",
-      restaurant,
-    });
+    // Delete all products of this restaurant
+    await Product.deleteMany({ restaurantId: restaurant._id });
+
+    // Delete restaurant
+    await Restaurant.findByIdAndDelete(id);
+
+    res.json({ message: "Restaurant deleted permanently" });
   } catch (err) {
-    console.error("APPROVE RESTAURANT ERROR:", err);
-    res.status(500).json({ message: "Failed to approve restaurant" });
+    res.status(500).json({ message: "Failed to delete restaurant" });
   }
 };
