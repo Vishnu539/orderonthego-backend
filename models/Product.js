@@ -33,10 +33,12 @@ const productSchema = new mongoose.Schema(
 
     // ✅ NEW: product image
     image: {
-      type: String, // will store image URL/path
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model("Product", productSchema);
+
