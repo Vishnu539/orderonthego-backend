@@ -70,20 +70,22 @@ exports.loginRestaurant = async (req, res) => {
 exports.addProduct = async (req, res) => {
   try {
     const { name, price, description, category } = req.body;
-    const restaurantId = req.restaurant.id; // ✅ CORRECT
 
-    const product = new Product({
+    const product = await Product.create({
       name,
       price,
       description,
       category,
-      restaurantId,
+      restaurantId: req.restaurant.id,
+      image: req.file
+        ? `/uploads/products/${req.file.filename}`
+        : null,
     });
 
-    await product.save();
     res.status(201).json(product);
   } catch (err) {
-    res.status(500).json({ message: "Failed to add product", error: err });
+    console.error(err);
+    res.status(500).json({ message: "Failed to add product" });
   }
 };
 
@@ -168,4 +170,5 @@ exports.getRestaurantOrders = async (req, res) => {
       .status(500)
       .json({ message: "Failed to fetch restaurant orders", error: err });
   }
+
 };
