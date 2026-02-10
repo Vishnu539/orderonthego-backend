@@ -8,19 +8,10 @@ const upload = require("../middleware/upload");
 // Public restaurant register & login
 router.post("/register", restCtrl.registerRestaurantAccount);
 router.post("/login", restCtrl.loginRestaurant);
-
-// Protected restaurant dashboard endpoints
-router.post(
-  "/menu/add",
-  restaurantAuth,
-  upload.single("image"),
-  restCtrl.addProduct
-);
+router.post("/menu/add", restaurantAuth, upload.single("image"), restCtrl.addProduct);
 router.put("/menu/:id", restaurantAuth, restCtrl.updateProduct);
 router.delete("/menu/:id", restaurantAuth, restCtrl.deleteProduct);
 router.get("/menu", restaurantAuth, restCtrl.getMyProducts);
-
 router.get("/orders", restaurantAuth, restCtrl.getRestaurantOrders);
-
 
 module.exports = router;
