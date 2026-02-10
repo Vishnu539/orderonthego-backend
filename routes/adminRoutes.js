@@ -9,6 +9,7 @@ const {
   getAllUsers,
   getAllRestaurants,
   getAllOrders,
+  approveRestaurant,
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -19,34 +20,6 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 ======================= */
 router.get("/ping", (req, res) => {
   res.json({ message: "admin routes alive" });
-});
-
-// TEMP: Seed admin (REMOVE AFTER USE)
-router.post("/seed-admin", async (req, res) => {
-  try {
-    const email = "admin@test.com";
-    const password = "admin123";
-
-    const existing = await Admin.findOne({ email });
-    if (existing) {
-      return res.json({ message: "Admin already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await Admin.create({
-      email,
-      password: hashedPassword,
-    });
-
-    res.json({
-      message: "Admin seeded successfully",
-      email,
-      password,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 });
 
 /* =======================
@@ -69,6 +42,13 @@ router.get(
   authMiddleware,
   roleMiddleware("admin"),
   getAllRestaurants
+);
+
+router.put(
+  "/restaurants/:id/approve",
+  authMiddleware,
+  roleMiddleware("admin"),
+  approveRestaurant
 );
 
 router.get(
