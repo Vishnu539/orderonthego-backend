@@ -69,18 +69,17 @@ exports.loginRestaurant = async (req, res) => {
 // ADD PRODUCT
 exports.addProduct = async (req, res) => {
   try {
-    const { name, price, category, description } = req.body;
+    const { name, price, category, description, image } = req.body;
 
-    const product = new Product({
+    const product = await Product.create({
       name,
       price,
       category,
       description,
       restaurantId: req.restaurant.id,
-      image: req.file ? `/uploads/${req.file.filename}` : null,
+      image, // base64 string
     });
 
-    await product.save();
     res.status(201).json(product);
   } catch (err) {
     console.error(err);
@@ -171,6 +170,7 @@ exports.getRestaurantOrders = async (req, res) => {
   }
 
 };
+
 
 
 
