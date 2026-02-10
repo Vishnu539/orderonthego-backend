@@ -71,19 +71,16 @@ exports.addProduct = async (req, res) => {
   try {
     const { name, price, category, description } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "Image required" });
-    }
-
-    const product = await Product.create({
+    const product = new Product({
       name,
       price,
       category,
       description,
-      image: `/uploads/products/${req.file.filename}`,
       restaurantId: req.restaurant.id,
+      image: req.file ? `/uploads/${req.file.filename}` : null,
     });
 
+    await product.save();
     res.status(201).json(product);
   } catch (err) {
     console.error(err);
@@ -174,4 +171,5 @@ exports.getRestaurantOrders = async (req, res) => {
   }
 
 };
+
 
