@@ -1,4 +1,3 @@
-// server/models/Restaurant.js
 const mongoose = require("mongoose");
 
 const restaurantSchema = new mongoose.Schema(
@@ -9,8 +8,8 @@ const restaurantSchema = new mongoose.Schema(
     password: { type: String },
     isApproved: { type: Boolean, default: false },
 
-    // ✅ NEW
-    image: { type: String, required: true }, // Cloudinary URL
+    // ✅ ADD THIS
+    image: { type: String, required: true },
   },
   { timestamps: true }
 );
