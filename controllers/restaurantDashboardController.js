@@ -4,11 +4,15 @@ const Product = require("../models/Product");
 const Orders = require("../models/Orders");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
-// Restaurant register
+/* =========================
+   RESTAURANT REGISTER
+========================= */
 exports.registerRestaurantAccount = async (req, res) => {
   try {
     const { name, address, email, password } = req.body;
+
     const existing = await Restaurant.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Restaurant already exists" });
@@ -29,26 +33,25 @@ exports.registerRestaurantAccount = async (req, res) => {
       message: "Restaurant registered. Await admin approval.",
     });
   } catch (err) {
-    res.status(500).json({ message: "Register failed", error: err });
+    res.status(500).json({ message: "Register failed" });
   }
 };
 
-// Restaurant login
+/* =========================
+   RESTAURANT LOGIN
+========================= */
 exports.loginRestaurant = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const rest = await Restaurant.findOne({ email });
-    if (!rest) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-    if (!rest.isApproved) {
+    if (!rest) return res.status(400).json({ message: "Invalid credentials" });
+    if (!rest.isApproved)
       return res.status(403).json({ message: "Restaurant not approved" });
-    }
 
     const isMatch = await bcrypt.compare(password, rest.password);
-    if (!isMatch) {
+    if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
-    }
 
     const token = jwt.sign(
       { id: rest._id.toString(), role: "restaurant" },
@@ -57,19 +60,24 @@ exports.loginRestaurant = async (req, res) => {
     );
 
     res.json({
-      message: "Login successful",
       token,
       restaurant: { id: rest._id, name: rest.name },
     });
   } catch (err) {
-    res.status(500).json({ message: "Login failed", error: err });
+    res.status(500).json({ message: "Login failed" });
   }
 };
 
-// ADD PRODUCT
+/* =========================
+   ADD PRODUCT (WITH IMAGE)
+========================= */
 exports.addProduct = async (req, res) => {
   try {
-    const { name, price, category, description, image } = req.body;
+    const { name, price, category, description } = req.body;
+
+    const imagePath = req.file
+      ? `/uploads/products/${req.file.filename}`
+      : null;
 
     const product = await Product.create({
       name,
@@ -77,7 +85,7 @@ exports.addProduct = async (req, res) => {
       category,
       description,
       restaurantId: req.restaurant.id,
-      image, // base64 string
+      image: imagePath,
     });
 
     res.status(201).json(product);
@@ -87,90 +95,77 @@ exports.addProduct = async (req, res) => {
   }
 };
 
-// Update product
+/* =========================
+   UPDATE PRODUCT
+========================= */
 exports.updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const restaurantId = req.restaurant.id;
-
-    const product = await Product.findById(id);
-    if (!product) {
+    const product = await Product.findById(req.params.id);
+    if (!product)
       return res.status(404).json({ message: "Product not found" });
-    }
 
-    if (product.restaurantId.toString() !== restaurantId) {
+    if (product.restaurantId.toString() !== req.restaurant.id) {
       return res.status(403).json({ message: "Not your product" });
     }
 
     Object.assign(product, req.body);
     await product.save();
 
-    res.json({ message: "Product updated", product });
+    res.json(product);
   } catch (err) {
-    res.status(500).json({ message: "Failed to update product", error: err });
+    res.status(500).json({ message: "Failed to update product" });
   }
 };
 
-// Delete product
+/* =========================
+   DELETE PRODUCT
+========================= */
 exports.deleteProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const restaurantId = req.restaurant.id;
-
-    const product = await Product.findById(id);
-    if (!product) {
+    const product = await Product.findById(req.params.id);
+    if (!product)
       return res.status(404).json({ message: "Product not found" });
-    }
 
-    if (product.restaurantId.toString() !== restaurantId) {
+    if (product.restaurantId.toString() !== req.restaurant.id) {
       return res.status(403).json({ message: "Not your product" });
     }
 
-    await Product.findByIdAndDelete(id);
+    await Product.findByIdAndDelete(req.params.id);
     res.json({ message: "Product deleted" });
   } catch (err) {
-    res.status(500).json({ message: "Failed to delete product", error: err });
+    res.status(500).json({ message: "Failed to delete product" });
   }
 };
 
+/* =========================
+   GET MY PRODUCTS
+========================= */
 exports.getMyProducts = async (req, res) => {
   try {
-    console.log("🔍 AUTH RESTAURANT:", req.restaurant);
-
-    const restaurantId = req.restaurant.id;
-    console.log("🔍 USING restaurantId:", restaurantId);
-
-    const products = await Product.find({ restaurantId });
-    console.log("🔍 PRODUCTS FOUND:", products.length);
-
+    const products = await Product.find({
+      restaurantId: req.restaurant.id,
+    });
     res.json(products);
   } catch (err) {
-    console.error("❌ ERROR IN getMyProducts:", err);
-    res.status(500).json({ message: "Failed to fetch products", error: err });
+    res.status(500).json({ message: "Failed to fetch products" });
   }
 };
 
-// Get restaurant orders
+/* =========================
+   GET ORDERS
+========================= */
 exports.getRestaurantOrders = async (req, res) => {
   try {
-    const restaurantId = req.restaurant.id;
-
-    const products = await Product.find({ restaurantId }).select("_id");
-    const productIds = products.map((p) => p._id);
+    const products = await Product.find({
+      restaurantId: req.restaurant.id,
+    }).select("_id");
 
     const orders = await Orders.find({
-      "items.productId": { $in: productIds },
+      "items.productId": { $in: products.map((p) => p._id) },
     }).populate("items.productId");
 
     res.json(orders);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch restaurant orders", error: err });
+    res.status(500).json({ message: "Failed to fetch orders" });
   }
-
 };
-
-
-
-
