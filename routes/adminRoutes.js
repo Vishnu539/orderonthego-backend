@@ -78,6 +78,32 @@ router.get(
   getAllOrders
 );
 
+// TEMP: Seed admin (remove after first use)
+router.get("/seed-admin", async (req, res) => {
+  try {
+    const existing = await Admin.findOne({ email: "admin@test.com" });
+    if (existing) {
+      return res.json({ message: "Admin already exists" });
+    }
+
+    const bcrypt = require("bcryptjs");
+    const hashed = await bcrypt.hash("admin123", 10);
+
+    const admin = new Admin({
+      email: "admin@test.com",
+      password: hashed,
+    });
+
+    await admin.save();
+
+    res.json({
+      message: "Admin seeded successfully",
+      email: "admin@test.com",
+      password: "admin123",
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;
-
