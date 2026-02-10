@@ -1,6 +1,3 @@
-const bcrypt = require("bcryptjs");
-const Admin = require("../models/Admin");
-
 const express = require("express");
 const router = express.Router();
 
@@ -10,26 +7,16 @@ const {
   getAllRestaurants,
   getAllOrders,
   approveRestaurant,
+  deleteRestaurant,
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-/* =======================
-   TEST
-======================= */
-router.get("/ping", (req, res) => {
-  res.json({ message: "admin routes alive" });
-});
-
-/* =======================
-   AUTH
-======================= */
+/* AUTH */
 router.post("/login", adminLogin);
 
-/* =======================
-   DASHBOARD DATA (ADMIN ONLY)
-======================= */
+/* DASHBOARD DATA */
 router.get(
   "/users",
   authMiddleware,
@@ -49,6 +36,13 @@ router.put(
   authMiddleware,
   roleMiddleware("admin"),
   approveRestaurant
+);
+
+router.delete(
+  "/restaurants/:id",
+  authMiddleware,
+  roleMiddleware("admin"),
+  deleteRestaurant
 );
 
 router.get(
