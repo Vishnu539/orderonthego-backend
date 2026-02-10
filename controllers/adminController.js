@@ -13,7 +13,6 @@ exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 🔥 support login via email OR username
     const admin = await Admin.findOne({
       $or: [{ email }, { username: email }],
     });
@@ -58,4 +57,29 @@ exports.getAllOrders = async (req, res) => {
     .populate("userId", "username email")
     .populate("items.productId", "name price");
   res.json(orders);
+};
+
+/* =======================
+   APPROVE RESTAURANT ✅
+======================= */
+exports.approveRestaurant = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    restaurant.isApproved = true;
+    await restaurant.save();
+
+    res.json({
+      message: "Restaurant approved successfully",
+      restaurant,
+    });
+  } catch (err) {
+    console.error("APPROVE RESTAURANT ERROR:", err);
+    res.status(500).json({ message: "Failed to approve restaurant" });
+  }
 };
