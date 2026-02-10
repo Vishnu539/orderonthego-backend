@@ -77,3 +77,5 @@ router.get(
   roleMiddleware("admin"),
   getAllOrders
 );
+
+module.exports = router;
