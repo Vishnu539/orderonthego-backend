@@ -6,6 +6,15 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+console.log("userRoutes:", typeof userRoutes);
+console.log("cartRoutes:", typeof cartRoutes);
+console.log("restaurantRoutes:", typeof restaurantRoutes);
+console.log("productRoutes:", typeof productRoutes);
+console.log("orderRoutes:", typeof orderRoutes);
+console.log("adminRoutes:", typeof adminRoutes);
+console.log("restaurantDashboardRoutes:", typeof restaurantDashboardRoutes);
+console.log("restaurantAuthRoutes:", typeof restaurantAuthRoutes);
+
 app.use(
   cors({
     origin: "*",
@@ -51,4 +60,5 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 
 });
+
 
