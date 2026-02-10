@@ -1,4 +1,3 @@
-// server/controllers/restaurantDashboardController.js
 const Restaurant = require("../models/Restaurant");
 const Product = require("../models/Product");
 const Orders = require("../models/Orders");
@@ -6,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 /* =========================
-   RESTAURANT REGISTER (WITH IMAGE)
+   REGISTER RESTAURANT (WITH IMAGE)
 ========================= */
 exports.registerRestaurantAccount = async (req, res) => {
   try {
@@ -28,8 +27,8 @@ exports.registerRestaurantAccount = async (req, res) => {
       address,
       email,
       password: hashed,
+      image: req.file.path,
       isApproved: false,
-      image: req.file.path, // ✅ Cloudinary URL
     });
 
     await rest.save();
@@ -67,9 +66,115 @@ exports.loginRestaurant = async (req, res) => {
 
     res.json({
       token,
-      restaurant: { id: rest._id, name: rest.name },
+      restaurant: {
+        id: rest._id,
+        name: rest.name,
+        image: rest.image,
+      },
     });
   } catch {
     res.status(500).json({ message: "Login failed" });
+  }
+};
+
+/* =========================
+   ADD PRODUCT (WITH IMAGE)
+========================= */
+exports.addProduct = async (req, res) => {
+  try {
+    const { name, price, category, description } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Product image required" });
+    }
+
+    const product = await Product.create({
+      name,
+      price,
+      category,
+      description,
+      restaurantId: req.restaurant.id,
+      image: req.file.path,
+    });
+
+    res.status(201).json(product);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add product" });
+  }
+};
+
+/* =========================
+   UPDATE PRODUCT
+========================= */
+exports.updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product)
+      return res.status(404).json({ message: "Product not found" });
+
+    if (product.restaurantId.toString() !== req.restaurant.id) {
+      return res.status(403).json({ message: "Not your product" });
+    }
+
+    Object.assign(product, req.body);
+    await product.save();
+
+    res.json(product);
+  } catch {
+    res.status(500).json({ message: "Failed to update product" });
+  }
+};
+
+/* =========================
+   DELETE PRODUCT
+========================= */
+exports.deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product)
+      return res.status(404).json({ message: "Product not found" });
+
+    if (product.restaurantId.toString() !== req.restaurant.id) {
+      return res.status(403).json({ message: "Not your product" });
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: "Product deleted" });
+  } catch {
+    res.status(500).json({ message: "Failed to delete product" });
+  }
+};
+
+/* =========================
+   GET MY PRODUCTS
+========================= */
+exports.getMyProducts = async (req, res) => {
+  try {
+    const products = await Product.find({
+      restaurantId: req.restaurant.id,
+    });
+    res.json(products);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch products" });
+  }
+};
+
+/* =========================
+   GET RESTAURANT ORDERS
+========================= */
+exports.getRestaurantOrders = async (req, res) => {
+  try {
+    const products = await Product.find({
+      restaurantId: req.restaurant.id,
+    }).select("_id");
+
+    const orders = await Orders.find({
+      "items.productId": { $in: products.map((p) => p._id) },
+    }).populate("items.productId");
+
+    res.json(orders);
+  } catch {
+    res.status(500).json({ message: "Failed to fetch orders" });
   }
 };
