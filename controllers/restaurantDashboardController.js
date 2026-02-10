@@ -75,9 +75,9 @@ exports.addProduct = async (req, res) => {
   try {
     const { name, price, category, description } = req.body;
 
-    const imagePath = req.file
-      ? `/uploads/products/${req.file.filename}`
-      : null;
+    if (!req.file) {
+      return res.status(400).json({ message: "Image is required" });
+    }
 
     const product = await Product.create({
       name,
@@ -85,7 +85,7 @@ exports.addProduct = async (req, res) => {
       category,
       description,
       restaurantId: req.restaurant.id,
-      image: imagePath,
+      image: req.file.path, // ✅ CLOUDINARY URL
     });
 
     res.status(201).json(product);
@@ -169,3 +169,4 @@ exports.getRestaurantOrders = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 };
+
