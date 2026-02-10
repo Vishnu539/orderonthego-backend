@@ -77,35 +77,3 @@ router.get(
   roleMiddleware("admin"),
   getAllOrders
 );
-
-router.get("/seed-admin", async (req, res) => {
-  try {
-    const existing = await Admin.findOne({ username: "admin" });
-    if (existing) {
-      return res.json({ message: "Admin already exists" });
-    }
-
-    const bcrypt = require("bcryptjs");
-    const hashed = await bcrypt.hash("admin123", 10);
-
-    const admin = new Admin({
-      username: "admin",
-      email: "admin@test.com",
-      password: hashed
-    });
-
-    await admin.save();
-
-    res.json({
-      message: "Admin seeded successfully",
-      credentials: {
-        username: "admin",
-        password: "admin123"
-      }
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-module.exports = router;
