@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const upload = require("../middleware/upload");
+const { upload } = require("../middleware/upload");
 const restaurantAuth = require("../middleware/restaurantAuth");
 const ctrl = require("../controllers/restaurantDashboardController");
 
@@ -30,3 +30,4 @@ router.get("/menu", restaurantAuth, ctrl.getMyProducts);
 router.get("/orders", restaurantAuth, ctrl.getRestaurantOrders);
 
 module.exports = router;
+
