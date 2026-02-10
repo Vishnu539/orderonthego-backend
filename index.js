@@ -23,8 +23,9 @@ const productRoutes = require("./routes/productRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const restaurantDashboardRoutes = require("./routes/restaurantDashboardRoutes");
+const restaurantAuthRoutes = require("./routes/restaurantAuthRoutes");
 
-
+app.use("/api/restaurant", restaurantAuthRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/restaurants", restaurantRoutes);
@@ -50,3 +51,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 
 });
+
