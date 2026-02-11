@@ -162,19 +162,19 @@ exports.getMyProducts = async (req, res) => {
 
 /* =========================
    GET RESTAURANT ORDERS
+   ✅ FIXED (LATEST FIRST + CLEAN FILTER)
 ========================= */
 exports.getRestaurantOrders = async (req, res) => {
   try {
-    const products = await Product.find({
-      restaurantId: req.restaurant.id,
-    }).select("_id");
-
     const orders = await Orders.find({
-      "items.productId": { $in: products.map((p) => p._id) },
-    }).populate("items.productId");
+      restaurantId: req.restaurant.id,
+    })
+      .populate("items.productId")
+      .sort({ createdAt: -1 }); // ✅ latest first
 
     res.json(orders);
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Failed to fetch orders" });
   }
 };
