@@ -15,7 +15,6 @@ exports.placeOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
 
-    // Group items by restaurantId
     const groupedByRestaurant = {};
 
     for (const item of cartItems) {
@@ -30,7 +29,6 @@ exports.placeOrder = async (req, res) => {
 
     const createdOrders = [];
 
-    // Create one order per restaurant
     for (const restaurantId in groupedByRestaurant) {
       const restaurantItems = groupedByRestaurant[restaurantId];
 
@@ -61,7 +59,6 @@ exports.placeOrder = async (req, res) => {
       createdOrders.push(order);
     }
 
-    // Clear cart after creating all orders
     await Cart.deleteMany({ userId: req.user.id });
 
     res.status(201).json({
@@ -97,7 +94,7 @@ exports.getRestaurantOrders = async (req, res) => {
       restaurantId: req.restaurant.id,
     })
       .populate("items.productId")
-      .sort({ createdAt: -1 }); // newest first
+      .sort({ createdAt: -1 });
 
     res.json(orders);
   } catch (error) {
@@ -131,7 +128,6 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Ensure restaurant owns this order
     if (order.restaurantId.toString() !== req.restaurant.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -150,6 +146,4 @@ exports.updateOrderStatus = async (req, res) => {
       error: error.message,
     });
   }
-
 };
-
