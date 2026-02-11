@@ -90,6 +90,24 @@ exports.getOrders = async (req, res) => {
   }
 };
 
+/* ---------------- RESTAURANT ORDERS ---------------- */
+exports.getRestaurantOrders = async (req, res) => {
+  try {
+    const orders = await Orders.find({
+      restaurantId: req.restaurant.id,
+    })
+      .populate("items.productId")
+      .sort({ createdAt: -1 }); // newest first
+
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch restaurant orders",
+      error,
+    });
+  }
+};
+
 /* ---------------- RESTAURANT UPDATE ORDER STATUS ---------------- */
 exports.updateOrderStatus = async (req, res) => {
   try {
@@ -134,3 +152,4 @@ exports.updateOrderStatus = async (req, res) => {
   }
 
 };
+
