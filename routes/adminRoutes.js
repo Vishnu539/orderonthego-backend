@@ -8,6 +8,7 @@ const {
   getAllOrders,
   approveRestaurant,
   deleteRestaurant,
+  deleteUser,
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -16,7 +17,7 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 /* AUTH */
 router.post("/login", adminLogin);
 
-/* DASHBOARD DATA */
+/* USERS */
 router.get(
   "/users",
   authMiddleware,
@@ -24,6 +25,14 @@ router.get(
   getAllUsers
 );
 
+router.delete(
+  "/users/:id",
+  authMiddleware,
+  roleMiddleware("admin"),
+  deleteUser
+);
+
+/* RESTAURANTS */
 router.get(
   "/restaurants",
   authMiddleware,
@@ -45,6 +54,7 @@ router.delete(
   deleteRestaurant
 );
 
+/* ORDERS */
 router.get(
   "/orders",
   authMiddleware,
