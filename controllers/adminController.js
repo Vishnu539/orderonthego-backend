@@ -6,6 +6,7 @@ const User = require("../models/User");
 const Restaurant = require("../models/Restaurant");
 const Orders = require("../models/Orders");
 const Product = require("../models/Product");
+const Cart = require("../models/Cart");
 
 /* =======================
    ADMIN LOGIN
@@ -77,8 +78,7 @@ exports.approveRestaurant = async (req, res) => {
 };
 
 /* =======================
-   DELETE RESTAURANT ❗
-   Requires email confirmation
+   DELETE RESTAURANT
 ======================= */
 exports.deleteRestaurant = async (req, res) => {
   try {
@@ -96,14 +96,40 @@ exports.deleteRestaurant = async (req, res) => {
       });
     }
 
-    // Delete all products of this restaurant
     await Product.deleteMany({ restaurantId: restaurant._id });
-
-    // Delete restaurant
     await Restaurant.findByIdAndDelete(id);
 
     res.json({ message: "Restaurant deleted permanently" });
   } catch (err) {
     res.status(500).json({ message: "Failed to delete restaurant" });
+  }
+};
+
+/* =======================
+   DELETE USER
+======================= */
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.email !== email) {
+      return res.status(400).json({
+        message: "Email confirmation does not match user email",
+      });
+    }
+
+    await Orders.deleteMany({ userId: user._id });
+    await Cart.deleteMany({ userId: user._id });
+    await User.findByIdAndDelete(id);
+
+    res.json({ message: "User deleted permanently" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete user" });
   }
 };
