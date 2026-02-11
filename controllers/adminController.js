@@ -44,37 +44,67 @@ exports.adminLogin = async (req, res) => {
    DASHBOARD DATA
 ======================= */
 exports.getAllUsers = async (req, res) => {
-  const users = await User.find().select("-password");
-  res.json(users);
+  try {
+    const users = await User.find().select("-password");
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch users",
+      error: err.message,
+    });
+  }
 };
 
 exports.getAllRestaurants = async (req, res) => {
-  const restaurants = await Restaurant.find();
-  res.json(restaurants);
+  try {
+    const restaurants = await Restaurant.find();
+    res.json(restaurants);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch restaurants",
+      error: err.message,
+    });
+  }
 };
 
 exports.getAllOrders = async (req, res) => {
-  const orders = await Orders.find()
-    .populate("userId", "username email")
-    .populate("items.productId", "name price");
-  res.json(orders);
+  try {
+    const orders = await Orders.find()
+      .populate("userId", "username email")
+      .populate("items.productId", "name price")
+      .sort({ createdAt: -1 }); // 🔥 newest first
+
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch orders",
+      error: err.message,
+    });
+  }
 };
 
 /* =======================
    APPROVE RESTAURANT
 ======================= */
 exports.approveRestaurant = async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const restaurant = await Restaurant.findById(id);
-  if (!restaurant) {
-    return res.status(404).json({ message: "Restaurant not found" });
+    const restaurant = await Restaurant.findById(id);
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+
+    restaurant.isApproved = true;
+    await restaurant.save();
+
+    res.json({ message: "Restaurant approved" });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to approve restaurant",
+      error: err.message,
+    });
   }
-
-  restaurant.isApproved = true;
-  await restaurant.save();
-
-  res.json({ message: "Restaurant approved" });
 };
 
 /* =======================
